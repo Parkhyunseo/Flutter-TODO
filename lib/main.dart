@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/painting.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'dart:core';
+
+import 'package:to/data/dummy.dart';
+import 'package:to/ui/task_row.dart';
 
 Future<Null> main() async {
   runApp(new TaskListApp());
@@ -38,7 +42,10 @@ class _HomePageState extends State<HomePage>{
         children: <Widget>[
           _buildImage(),
           _buildTopHeader(),
-          _buildProfileRow()
+          _buildProfileRow(),
+          _buildBottomPart(),
+          _buildTimeline(),
+          _buildTasksList()
         ],
       )
     );
@@ -122,12 +129,73 @@ class _HomePageState extends State<HomePage>{
     );
   }
 
-/*
-  Widget _buildTodoList()
+  Widget _buildBottomPart()
   {
-    return Container();
+    return new Padding(
+      padding: new EdgeInsets.only(top: _imageHeight),  
+      child: new Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          _buildMyTaskHeader(),
+          _buildTaskList()
+        ],
+      )
+    );
   }
-*/
+
+  Widget _buildTaskList()
+  {
+    return new Container();  
+  }
+
+  Widget _buildMyTaskHeader()
+  {
+    return new Padding(
+      padding: const EdgeInsets.only(left: 64.0),
+      child: new Column(
+        children: <Widget>[
+          new Text(
+            'My Tasks',
+            style: new TextStyle(
+              fontSize: 34.0,
+            )
+          ),
+          new Text(
+            DateTime.now().year.toString() + ' ' + 
+            DateTime.now().month.toString() + ' ' +
+            DateTime.now().day.toString(),
+            style: new TextStyle(
+              color: Colors.grey,
+              fontSize: 15.0,
+            )
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeline()
+  {
+    return new Positioned(
+      top: 0.0,
+      bottom: 0.0,
+      left: 32.0,
+      child: new Container(
+        width: 1.0,
+        color: Colors.grey[300]
+      ),
+    );
+  }
+
+  Widget _buildTasksList()
+  {
+    return new Expanded(
+      child: new ListView(
+        children: tasks.map((task) => new TaskRow(task: task)).toList(),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     super.dispose();
