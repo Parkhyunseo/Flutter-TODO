@@ -3,11 +3,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/painting.dart';
+
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:core';
 
+import 'package:to/data/list_model.dart';
 import 'package:to/data/dummy.dart';
+
 import 'package:to/ui/task_row.dart';
+import 'package:to/ui/animated_fab.dart';
+
+import 'package:to/utils/diagonal_clipper.dart';
 
 Future<Null> main() async {
   runApp(new TaskListApp());
@@ -33,6 +39,9 @@ class HomePage extends StatefulWidget {
 }
 // with는 mixin?
 class _HomePageState extends State<HomePage>{
+  final GlobalKey<AnimatedListState> _listKey = new GlobalKey<AnimatedListState>();
+  ListModel listModel;
+  bool showOnlyCompleted = false;
   double _imageHeight = 256.0;
 
   @override
@@ -40,13 +49,34 @@ class _HomePageState extends State<HomePage>{
     return Scaffold(      
       body: new Stack(
         children: <Widget>[
+          _buildTimeline(),
           _buildImage(),
           _buildTopHeader(),
           _buildProfileRow(),
           _buildBottomPart(),
-          _buildTimeline(),
-          _buildTasksList()
+          _buildFab(),
         ],
+      )
+    );
+  }
+
+  void _changeFilterState(){
+    showOnlyCompleted = !showOnlyCompleted;
+    tasks.where((task) => !task.completed).forEach((task) {
+      if (showOnlyCompleted) {
+        listModel.removeAt(listModel.indexOf(task));
+      }else{
+        listModel.insert(tasks.indexOf(task), task);
+      }
+    });
+  }
+
+  Widget _buildFab(){
+    return new Positioned(
+      top: _imageHeight - 100.0,
+      right: -40.0,
+      child: new AnimatedFab(
+        onClick: _changeFilterState
       )
     );
   }
@@ -145,7 +175,18 @@ class _HomePageState extends State<HomePage>{
 
   Widget _buildTaskList()
   {
-    return new Container();  
+    return new Expanded(
+      child: new AnimatedList(
+        initialItemCount: tasks.length,
+        key: _listKey,
+        itemBuilder: (context, index, animation){
+          return new TaskRow(
+            task: listModel[index],
+            animation: animation,
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildMyTaskHeader()
@@ -187,15 +228,6 @@ class _HomePageState extends State<HomePage>{
     );
   }
 
-  Widget _buildTasksList()
-  {
-    return new Expanded(
-      child: new ListView(
-        children: tasks.map((task) => new TaskRow(task: task)).toList(),
-      ),
-    );
-  }
-
   @override
   void dispose() {
     super.dispose();
@@ -204,7 +236,7 @@ class _HomePageState extends State<HomePage>{
   @override
   void initState() {
     super.initState();
-
+    listModel = new ListModel(_listKey, tasks);
     // prevent device orientation changes and force portrait?
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -213,18 +245,3 @@ class _HomePageState extends State<HomePage>{
   }
 }
 
-class DialognalCliper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size)
-  {
-    Path path = new Path();
-    path.lineTo(0.0, size.height-60.0);
-    path.lineTo(size.width, size.height);
-    path.lineTo(size.width, 0.0);
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipeer) => true;
-}
